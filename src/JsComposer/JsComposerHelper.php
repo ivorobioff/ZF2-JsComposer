@@ -1,7 +1,7 @@
 <?php
 namespace Developer\JsComposer;
+
 use Developer\Stuff\JsComposer\Composer;
-use Zend\Mvc\Controller\AbstractActionController;
 use Zend\ServiceManager\ServiceLocatorAwareTrait;
 use Zend\View\Helper\AbstractHelper;
 
@@ -12,12 +12,11 @@ class JsComposerHelper extends AbstractHelper
 {
 	private $controller;
 	private $action;
+	private $error;
 	private $config;
 
-	public function __construct(AbstractActionController $controller, $action, array $config)
+	public function __construct(array $config)
 	{
-		$this->controller = $controller;
-		$this->action = $action;
 		$this->config = $config;
 	}
 
@@ -26,25 +25,9 @@ class JsComposerHelper extends AbstractHelper
 		$classesPath = $this->config['classes'];
 		$binPath = $this->config['bin'];
 		$bootPath = $this->config['boot'];
-		$bootfilesConfig = $this->config['bootfiles'];
 		$publicPath = $this->config['public'];
 
-		$controllerClass = get_class($this->controller);
-		if (!isset($bootfilesConfig[$controllerClass])) return '';
-
-		$config = $bootfilesConfig[$controllerClass];
-
-		$bootfiles = [];
-
-		if (isset($config['bootfiles']))
-		{
-			$bootfiles = $config['bootfiles'];
-		}
-
-		if (isset($config['actions'][$this->action]))
-		{
-			$bootfiles = $config['actions'][$this->action];
-		}
+		$bootfiles = $this->resolveBootfiles();
 
 		if (!$bootfiles) return '';
 
@@ -66,5 +49,63 @@ class JsComposerHelper extends AbstractHelper
 		}
 
 		return '<script src="'.$publicPath.'/'.$bin.'.js"></script>';
+	}
+
+	private function resolveBootfiles()
+	{
+		$bootfiles = [];
+		if (!isset($this->config['bootfiles'])) return $bootfiles;
+		$bootfilesConfig = $this->config['bootfiles'];
+
+		if (isset($bootfilesConfig['default']))
+		{
+			$bootfiles = $bootfilesConfig['default'];
+		}
+
+		if (isset($this->error))
+		{
+			if (!isset($bootfilesConfig['errors'])) return $bootfiles;
+			$errorBootfiles = $bootfilesConfig['errors'];
+
+			if (isset($errorBootfiles['default']))
+			{
+				$bootfiles = $errorBootfiles['default'];
+			}
+
+			if (isset($errorBootfiles['specific'][$this->error]))
+			{
+				$bootfiles = $errorBootfiles['specific'][$this->error];
+			}
+
+			return $bootfiles;
+		}
+
+		if (!isset($this->controller)) return $bootfiles;
+
+		if (!isset($bootfilesConfig['pages'][$this->controller])) return $bootfiles;
+		$pageBootfiles = $bootfilesConfig['pages'][$this->controller];
+
+		if (isset($pageBootfiles['bootfiles']))
+		{
+			$bootfiles = $pageBootfiles['bootfiles'];
+		}
+
+		if (isset($pageBootfiles['actions'][$this->action]))
+		{
+			$bootfiles = $pageBootfiles['actions'][$this->action];
+		}
+
+		return $bootfiles;
+	}
+
+	public function setPage($controller, $action)
+	{
+		$this->controller = $controller;
+		$this->action = $action;
+	}
+
+	public function setError($error)
+	{
+		$this->error = $error;
 	}
 }

@@ -4,6 +4,7 @@ use Zend\EventManager\EventInterface;
 use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\BootstrapListenerInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\Mvc\Application;
 use Zend\Mvc\MvcEvent;
 
 /**
@@ -25,13 +26,28 @@ class Module implements ConfigProviderInterface, AutoloaderProviderInterface, Bo
 				'public' => '',
 				'boot' => '',
 				'bootfiles' => [
-//					'{CONTROLLER_CLASS}' => [
-//						'actions' => [
-//							'{ACTION_NAME}' => ['{BOOTFILE1}', '{BOOTFILE3}']
-//						],
-//						'bootfiles' => ['{BOOTFILE1}', '{BOOTFILE2}']
-//					]
-				]
+					'pages' => [
+	//					'{CONTROLLER_CLASS}' => [
+	//						'actions' => [
+	//							'{ACTION_NAME}' => ['{BOOTFILE1}', '{BOOTFILE3}']
+	//						],
+	//						'bootfiles' => ['{BOOTFILE1}', '{BOOTFILE2}']
+	//					]
+					],
+
+					'errors' => [
+						'specific' => [
+							//'{ERROR}' => ['{BOOTFILE1}', '{BOOTFILE2}']
+						],
+						'default' => [
+							//['{BOOTFILE1}', '{BOOTFILE2}']
+						]
+					],
+
+					'default' => [
+						//['{BOOTFILE1}', '{BOOTFILE2}']
+					]
+				],
 			]
 		];
 	}
@@ -62,6 +78,6 @@ class Module implements ConfigProviderInterface, AutoloaderProviderInterface, Bo
 	{
 		$e->getApplication()
 			->getEventManager()
-			->attach(MvcEvent::EVENT_DISPATCH, new JsComposerInitializer());
+			->attach(MvcEvent::EVENT_RENDER, new JsComposerInitializer(), 10);
 	}
 }
