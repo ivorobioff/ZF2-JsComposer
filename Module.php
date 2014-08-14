@@ -71,12 +71,12 @@ class Module implements ConfigProviderInterface, AutoloaderProviderInterface, Bo
 	/**
 	 * Listen to the bootstrap event
 	 *
-	 * @param EventInterface|MvcEvent $e
+	 * @param EventInterface|MvcEvent $event
 	 * @return array
 	 */
-	public function onBootstrap(EventInterface $e)
+	public function onBootstrap(EventInterface $event)
 	{
-		$e->getApplication()
+		$event->getApplication()
 			->getEventManager()
 			->attach(MvcEvent::EVENT_RENDER, new JsComposerInitializer(), 10);
 	}
